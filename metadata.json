@@ -1,0 +1,7 @@
+{
+  "name": "תכנון טיול חכם - Smart Travel Planner",
+  "description": "אפליקציה מתקדמת לתכנון טיולים מותאמים אישית הכוללת מסלולים מפורטים, המלצות קולינריות, מפות ומוזיקה תואמת.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
