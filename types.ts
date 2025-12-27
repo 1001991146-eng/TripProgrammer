@@ -14,6 +14,7 @@ export enum TravelStyle {
   BACKPACKING = 'תרמילאים'
 }
 
+// Added missing interface used in the planner form and service
 export interface TripPreferences {
   destination: string;
   duration: number;
@@ -30,7 +31,7 @@ export interface Site {
   history: string;
   culture: string;
   mapUrl: string;
-  imageUrl?: string; // New field for site images
+  imageUrl?: string;
 }
 
 export interface CulinaryRecommendation {
