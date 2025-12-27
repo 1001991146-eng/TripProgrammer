@@ -29,7 +29,6 @@ export interface Site {
   geography: string;
   history: string;
   culture: string;
-  transportMethod: string;
   mapUrl: string;
 }
 
@@ -43,6 +42,8 @@ export interface Accommodation {
   type: string;
   description: string;
   priceNote: string;
+  estimatedCost: number;
+  bookingUrl: string;
 }
 
 export interface ItineraryDay {

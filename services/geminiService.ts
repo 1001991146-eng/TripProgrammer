@@ -2,113 +2,119 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { TripPreferences, TripResponse } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
-
 export const generateTripItinerary = async (prefs: TripPreferences): Promise<TripResponse> => {
-  const prompt = `
-    צור תכנית טיול מפורטת ועשירה עבור היעד: ${prefs.destination}.
-    פרטי הבקשה:
-    - משך הטיול: ${prefs.duration} ימים.
-    - תקציב ללילה: ${prefs.budgetPerNight} דולר.
-    - קצב הפעילות: ${prefs.pace}.
-    - סגנון הטיול: ${prefs.style}.
-    - השכרת רכב: ${prefs.rentCar ? 'כן' : 'לא'}.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
-    דרישות ספציפיות להרחבת המידע:
-    1. עבור כל אתר בתוכנית היומית, ספק מידע מעמיק בשלושה היבטים:
-       - גאוגרפיה: הסבר על המיקום הפיזי, הנוף או המבנה הגאולוגי/אורבני.
-       - היסטוריה: רקע היסטורי מרתק, אירועים מרכזיים או סיפור הקמת המקום.
-       - תרבות: חשיבות תרבותית, מנהגים מקומיים הקשורים לאתר או אווירה ייחודית.
-    2. המלצות קולינריות ייחודיות ודרכי הגעה מפורטות.
-    3. לפחות 3 אפשרויות לינה המתאימות לתקציב ולסגנון.
-    4. הצעות למוזיקה ביוטיוב (קישורים או שאילתות) שמתאימות לאווירת היעד.
+  // Create an AbortController to handle timeouts
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+
+  const prompt = `
+    צור תכנית טיול מפורטת ומרתקת ליעד: ${prefs.destination}.
+    פרמטרים: ${prefs.duration} ימים, תקציב ${prefs.budgetPerNight}$, קצב ${prefs.pace}, סגנון ${prefs.style}.
     
-    התגובה חייבת להיות בעברית רהוטה ובפורמט JSON בלבד.
+    הנחיות חשובות:
+    1. החזר את התשובה בעברית בלבד.
+    2. היה תמציתי אך איכותי כדי להבטיח מהירות תגובה.
+    3. עבור המלונות, ציין עלות משוערת ללילה בדולרים וקישור תקין להזמנה.
+    4. וודא שה-JSON תקני ומלא.
   `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          tripTitle: { type: Type.STRING },
-          summary: { type: Type.STRING },
-          itinerary: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                dayNumber: { type: Type.NUMBER },
-                title: { type: Type.STRING },
-                sites: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      name: { type: Type.STRING },
-                      description: { type: Type.STRING },
-                      geography: { type: Type.STRING },
-                      history: { type: Type.STRING },
-                      culture: { type: Type.STRING },
-                      transportMethod: { type: Type.STRING },
-                      mapUrl: { type: Type.STRING }
-                    },
-                    required: ["name", "description", "geography", "history", "culture", "transportMethod", "mapUrl"]
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        // Disable thinking budget to ensure maximum speed (latency-focused)
+        thinkingConfig: { thinkingBudget: 0 },
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            tripTitle: { type: Type.STRING },
+            summary: { type: Type.STRING },
+            itinerary: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  dayNumber: { type: Type.INTEGER },
+                  title: { type: Type.STRING },
+                  sites: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        name: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        geography: { type: Type.STRING },
+                        history: { type: Type.STRING },
+                        culture: { type: Type.STRING },
+                        mapUrl: { type: Type.STRING }
+                      },
+                      required: ["name", "description"]
+                    }
+                  },
+                  culinaryTips: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        dish: { type: Type.STRING },
+                        description: { type: Type.STRING }
+                      }
+                    }
                   }
                 },
-                culinaryTips: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      dish: { type: Type.STRING },
-                      description: { type: Type.STRING }
-                    },
-                    required: ["dish", "description"]
-                  }
+                required: ["dayNumber", "title", "sites"]
+              }
+            },
+            accommodations: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  type: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  priceNote: { type: Type.STRING },
+                  estimatedCost: { type: Type.NUMBER },
+                  bookingUrl: { type: Type.STRING }
+                },
+                required: ["name", "estimatedCost", "bookingUrl"]
+              }
+            },
+            musicSuggestions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  reason: { type: Type.STRING },
+                  youtubeUrl: { type: Type.STRING }
                 }
-              },
-              required: ["dayNumber", "title", "sites", "culinaryTips"]
+              }
             }
           },
-          accommodations: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                name: { type: Type.STRING },
-                type: { type: Type.STRING },
-                description: { type: Type.STRING },
-                priceNote: { type: Type.STRING }
-              },
-              required: ["name", "type", "description", "priceNote"]
-            }
-          },
-          musicSuggestions: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                reason: { type: Type.STRING },
-                youtubeUrl: { type: Type.STRING }
-              },
-              required: ["title", "reason", "youtubeUrl"]
-            }
-          }
-        },
-        required: ["tripTitle", "summary", "itinerary", "accommodations", "musicSuggestions"]
+          required: ["tripTitle", "summary", "itinerary", "accommodations"]
+        }
       }
-    }
-  });
+    });
 
-  try {
-    return JSON.parse(response.text);
-  } catch (error) {
-    console.error("Failed to parse Gemini response:", error);
-    throw new Error("חלה שגיאה בעיבוד נתוני הטיול. אנא נסה שוב.");
+    clearTimeout(timeoutId);
+
+    if (!response || !response.text) {
+      throw new Error("לא התקבלה תשובה מהשרת.");
+    }
+
+    const data = JSON.parse(response.text);
+    return data as TripResponse;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error("החיבור התנתק עקב המתנה ארוכה מדי (Timeout). אנא נסו שוב.");
+    }
+    console.error("Gemini API Error details:", error);
+    throw new Error(error.message || "חלה שגיאה בתקשורת עם שרת הבינה המלאכותית.");
   }
 };
