@@ -1,23 +1,60 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { TripPreferences, TripResponse } from "../types";
+import { TripPreferences, TripResponse, Site } from "../types";
+
+const generateImageForSite = async (siteName: string, destination: string): Promise<string | undefined> => {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [{ text: `A high-quality professional travel photograph of ${siteName} in ${destination}. Vibrant colors, realistic, cinematic lighting, wide angle view, no people, 16:9 aspect ratio.` }],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "16:9"
+        }
+      }
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:image/png;base64,${part.inlineData.data}`;
+      }
+    }
+  } catch (error) {
+    console.error(`Failed to generate image for ${siteName}:`, error);
+  }
+  return undefined;
+};
 
 export const generateTripItinerary = async (prefs: TripPreferences): Promise<TripResponse> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
-  // Create an AbortController to handle timeouts
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s for detailed text + images
 
   const prompt = `
-    צור תכנית טיול מפורטת ומרתקת ליעד: ${prefs.destination}.
+    צור תכנית טיול מפורטת, עשירה ומרתקת ליעד: ${prefs.destination}.
     פרמטרים: ${prefs.duration} ימים, תקציב ${prefs.budgetPerNight}$, קצב ${prefs.pace}, סגנון ${prefs.style}.
     
-    הנחיות חשובות:
-    1. החזר את התשובה בעברית בלבד.
-    2. היה תמציתי אך איכותי כדי להבטיח מהירות תגובה.
-    3. עבור המלונות, ציין עלות משוערת ללילה בדולרים וקישור תקין להזמנה.
-    4. וודא שה-JSON תקני ומלא.
+    דרישות תוכן מחמירות לכל אתר (Site) במסלול:
+    1. תיאור כללי (description): פסקה מעניינת על האתר.
+    2. גאוגרפיה (geography): בדיוק 5 משפטים מפורטים על המבנה הגאוגרפי, המיקום והסביבה של האתר.
+    3. היסטוריה (history): בדיוק 5 משפטים מפורטים על ההיסטוריה, הקמתו ואירועים משמעותיים.
+    4. תרבות (culture): בדיוק 5 משפטים מפורטים על החשיבות התרבותית, מנהגים מקומיים או פולקלור הקשור לאתר.
+    
+    דרישות קולינריות:
+    לכל יום, ספק המלצות קולינריות עם הסבר מפורט על המאכל, המקור שלו ומה הופך אותו למיוחד.
+    
+    דרישות מוזיקה ויוטיוב:
+    אל תמציא קישורי וידאו ישירים (IDs). במקום זאת, צור קישור לחיפוש ביוטיוב בפורמט: https://www.youtube.com/results?search_query=[SEARCH+TERM]
+    כאשר ה-SEARCH TERM הוא שם האמן והשיר או סגנון מוזיקלי מתאים ליעד.
+    
+    הנחיות כלליות:
+    - השפה חייבת להיות עברית רהוטה ועשירה.
+    - וודא שהמלונות רלוונטיים לתקציב וכוללים קישור תקין.
+    - החזר JSON תקני בלבד.
   `;
 
   try {
@@ -26,7 +63,6 @@ export const generateTripItinerary = async (prefs: TripPreferences): Promise<Tri
       contents: prompt,
       config: {
         responseMimeType: "application/json",
-        // Disable thinking budget to ensure maximum speed (latency-focused)
         thinkingConfig: { thinkingBudget: 0 },
         responseSchema: {
           type: Type.OBJECT,
@@ -52,7 +88,7 @@ export const generateTripItinerary = async (prefs: TripPreferences): Promise<Tri
                         culture: { type: Type.STRING },
                         mapUrl: { type: Type.STRING }
                       },
-                      required: ["name", "description"]
+                      required: ["name", "description", "geography", "history", "culture"]
                     }
                   },
                   culinaryTips: {
@@ -101,18 +137,32 @@ export const generateTripItinerary = async (prefs: TripPreferences): Promise<Tri
       }
     });
 
-    clearTimeout(timeoutId);
-
     if (!response || !response.text) {
       throw new Error("לא התקבלה תשובה מהשרת.");
     }
 
-    const data = JSON.parse(response.text);
-    return data as TripResponse;
+    const tripData = JSON.parse(response.text) as TripResponse;
+
+    // Generate images for all sites in the itinerary in parallel
+    const imagePromises: Promise<void>[] = [];
+    
+    tripData.itinerary.forEach(day => {
+      day.sites.forEach(site => {
+        const promise = generateImageForSite(site.name, prefs.destination).then(url => {
+          if (url) site.imageUrl = url;
+        });
+        imagePromises.push(promise);
+      });
+    });
+
+    await Promise.all(imagePromises);
+
+    clearTimeout(timeoutId);
+    return tripData;
   } catch (error: any) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
-      throw new Error("החיבור התנתק עקב המתנה ארוכה מדי (Timeout). אנא נסו שוב.");
+      throw new Error("החיבור התנתק עקב עומס או המתנה ארוכה מדי. אנא נסו שוב.");
     }
     console.error("Gemini API Error details:", error);
     throw new Error(error.message || "חלה שגיאה בתקשורת עם שרת הבינה המלאכותית.");

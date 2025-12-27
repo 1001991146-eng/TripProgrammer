@@ -8,27 +8,27 @@ interface Props {
 }
 
 const SiteDetails: React.FC<{ site: Site }> = ({ site }) => (
-  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm print:grid-cols-3">
-    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 print:bg-white print:border-gray-200">
-      <div className="flex items-center gap-2 mb-2 text-emerald-800 font-bold">
-        <span>🌍</span>
-        גאוגרפיה
+  <div className="mt-6 grid grid-cols-1 gap-6 text-sm print:grid-cols-1">
+    <div className="bg-emerald-50/70 p-5 rounded-2xl border border-emerald-100 shadow-sm print:bg-white print:border-gray-200">
+      <div className="flex items-center gap-2 mb-3 text-emerald-800 font-black text-lg">
+        <span className="bg-emerald-200 p-2 rounded-lg">🌍</span>
+        גאוגרפיה וסביבה
       </div>
-      <p className="text-emerald-900/80 leading-relaxed">{site.geography || 'מידע לא זמין'}</p>
+      <p className="text-emerald-900/90 leading-loose text-base whitespace-pre-line">{site.geography || 'מידע לא זמין'}</p>
     </div>
-    <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 print:bg-white print:border-gray-200">
-      <div className="flex items-center gap-2 mb-2 text-amber-800 font-bold">
-        <span>📜</span>
-        היסטוריה
+    <div className="bg-amber-50/70 p-5 rounded-2xl border border-amber-100 shadow-sm print:bg-white print:border-gray-200">
+      <div className="flex items-center gap-2 mb-3 text-amber-800 font-black text-lg">
+        <span className="bg-amber-200 p-2 rounded-lg">📜</span>
+        היסטוריה ומורשת
       </div>
-      <p className="text-amber-900/80 leading-relaxed">{site.history || 'מידע לא זמין'}</p>
+      <p className="text-amber-900/90 leading-loose text-base whitespace-pre-line">{site.history || 'מידע לא זמין'}</p>
     </div>
-    <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 print:bg-white print:border-gray-200">
-      <div className="flex items-center gap-2 mb-2 text-purple-800 font-bold">
-        <span>🎭</span>
-        תרבות
+    <div className="bg-purple-50/70 p-5 rounded-2xl border border-purple-100 shadow-sm print:bg-white print:border-gray-200">
+      <div className="flex items-center gap-2 mb-3 text-purple-800 font-black text-lg">
+        <span className="bg-purple-200 p-2 rounded-lg">🎭</span>
+        תרבות ופולקלור
       </div>
-      <p className="text-purple-900/80 leading-relaxed">{site.culture || 'מידע לא זמין'}</p>
+      <p className="text-purple-900/90 leading-loose text-base whitespace-pre-line">{site.culture || 'מידע לא זמין'}</p>
     </div>
   </div>
 );
@@ -41,7 +41,6 @@ const ItineraryView: React.FC<Props> = ({ data, onReset }) => {
   const handleDownloadPDF = async () => {
     if (!itineraryRef.current) return;
     
-    // Check global window object first as we loaded it via script tag in index.html
     const html2pdf = (window as any).html2pdf;
     
     if (!html2pdf) {
@@ -55,9 +54,8 @@ const ItineraryView: React.FC<Props> = ({ data, onReset }) => {
 
     const element = itineraryRef.current;
     
-    // Configuration for a clean Hebrew PDF
     const opt = {
-      margin: [15, 10],
+      margin: [10, 10],
       filename: `itinerary_${data.tripTitle.replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
@@ -73,14 +71,9 @@ const ItineraryView: React.FC<Props> = ({ data, onReset }) => {
     };
 
     try {
-      // Apply temporary styling for high-quality capture
       element.classList.add('pdf-capture-mode');
-      
-      // Small timeout to allow styles to settle
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
+      await new Promise(resolve => setTimeout(resolve, 800));
       await html2pdf().set(opt).from(element).save();
-      
       element.classList.remove('pdf-capture-mode');
       setFeedback("הקובץ הורד בהצלחה! 🎉");
     } catch (err) {
@@ -179,7 +172,7 @@ const ItineraryView: React.FC<Props> = ({ data, onReset }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pb-20 space-y-12 animate-fade-in relative z-10">
+    <div className="max-w-5xl mx-auto px-4 pb-20 space-y-12 animate-fade-in relative z-10">
       {/* Action Buttons */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 print:hidden">
         <button
@@ -237,29 +230,29 @@ const ItineraryView: React.FC<Props> = ({ data, onReset }) => {
       <div id="itinerary-content" ref={itineraryRef} className="space-y-12">
         {/* Header */}
         <div className="text-center bg-white p-10 rounded-3xl shadow-sm border border-blue-50 print:border-none print:shadow-none print:p-0">
-          <h2 className="text-5xl font-black text-slate-900 mb-4">{data.tripTitle}</h2>
-          <p className="text-slate-600 leading-relaxed text-xl max-w-2xl mx-auto italic">"{data.summary}"</p>
+          <h2 className="text-5xl font-black text-slate-900 mb-4 leading-tight">{data.tripTitle}</h2>
+          <p className="text-slate-600 leading-relaxed text-xl max-w-3xl mx-auto italic">"{data.summary}"</p>
         </div>
 
         {/* Accommodations */}
         <div className="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-100 p-8 print:shadow-none print:border-gray-200">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
-            🏨 אפשרויות לינה מומלצות
+          <h3 className="text-3xl font-black text-gray-800 mb-8 flex items-center gap-3 border-b border-gray-100 pb-4">
+            🏨 המלצות לינה ואירוח
           </h3>
           <div className="grid gap-6 md:grid-cols-3 print:grid-cols-3">
             {data.accommodations?.map((acc, idx) => (
-              <div key={idx} className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 flex flex-col h-full print:bg-white print:border-gray-200">
-                <span className="text-[10px] uppercase tracking-wider font-black text-blue-600 bg-white px-2 py-1 rounded-full border border-blue-100 w-fit mb-3">
+              <div key={idx} className="bg-blue-50/40 p-6 rounded-3xl border border-blue-100 flex flex-col h-full print:bg-white print:border-gray-200">
+                <span className="text-[10px] uppercase tracking-widest font-black text-blue-600 bg-white px-3 py-1 rounded-full border border-blue-100 w-fit mb-4 shadow-sm">
                   {acc.type}
                 </span>
-                <h4 className="font-bold text-blue-900 mb-2 text-lg">{acc.name}</h4>
-                <p className="text-gray-600 text-sm leading-relaxed flex-grow mb-4">{acc.description}</p>
+                <h4 className="font-black text-blue-900 mb-3 text-xl">{acc.name}</h4>
+                <p className="text-gray-600 text-sm leading-relaxed flex-grow mb-6">{acc.description}</p>
                 
-                <div className="mt-auto space-y-3">
-                  <div className="pt-3 border-t border-blue-100 flex justify-between items-center">
+                <div className="mt-auto space-y-4">
+                  <div className="pt-4 border-t border-blue-100 flex justify-between items-center">
                      <div className="flex flex-col">
-                        <span className="text-[10px] text-blue-400 font-bold uppercase">עלות משוערת</span>
-                        <span className="font-black text-blue-800 text-lg">${acc.estimatedCost} <span className="text-xs font-normal">/ לילה</span></span>
+                        <span className="text-[10px] text-blue-400 font-bold uppercase tracking-tighter">עלות משוערת</span>
+                        <span className="font-black text-blue-800 text-2xl">${acc.estimatedCost} <span className="text-xs font-normal">/ לילה</span></span>
                      </div>
                   </div>
                   {acc.bookingUrl && (
@@ -267,9 +260,9 @@ const ItineraryView: React.FC<Props> = ({ data, onReset }) => {
                       href={acc.bookingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block text-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 rounded-xl transition-colors print:hidden"
+                      className="block text-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3 rounded-2xl transition-all shadow-md active:scale-95 print:hidden"
                     >
-                      הזמן עכשיו ↗
+                      להזמנה ובדיקת זמינות ↗
                     </a>
                   )}
                 </div>
@@ -279,52 +272,75 @@ const ItineraryView: React.FC<Props> = ({ data, onReset }) => {
         </div>
 
         {/* Itinerary */}
-        <div className="space-y-12">
+        <div className="space-y-16">
           {data.itinerary.map((day) => (
-            <div key={day.dayNumber} className="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-100 print:shadow-none print:border-gray-200 print:break-inside-avoid">
-              <div className="bg-gradient-to-l from-blue-600 to-indigo-600 text-white p-6 flex justify-between items-center print:bg-none print:text-black print:border-b-2 print:border-blue-800">
-                <h3 className="text-3xl font-black">יום {day.dayNumber}: {day.title}</h3>
-                <span className="text-white/60 font-bold hidden md:inline print:hidden tracking-widest text-sm uppercase">DAY {day.dayNumber}</span>
+            <div key={day.dayNumber} className="bg-white rounded-[2.5rem] overflow-hidden shadow-xl border border-gray-100 print:shadow-none print:border-gray-200 print:break-inside-avoid">
+              <div className="bg-gradient-to-l from-blue-700 to-indigo-800 text-white p-8 flex justify-between items-center print:bg-none print:text-black print:border-b-4 print:border-blue-900">
+                <h3 className="text-4xl font-black">יום {day.dayNumber}: {day.title}</h3>
+                <div className="bg-white/10 px-6 py-2 rounded-full backdrop-blur-md border border-white/20 hidden md:block">
+                  <span className="text-white/80 font-black tracking-widest text-sm uppercase">ITINERARY DAY {day.dayNumber}</span>
+                </div>
               </div>
               
-              <div className="p-6 md:p-10 space-y-10">
-                <div className="space-y-12">
+              <div className="p-8 md:p-12 space-y-16">
+                <div className="space-y-20">
                   {day.sites.map((site, idx) => (
-                    <div key={idx} className="space-y-5 border-b border-gray-50 pb-10 last:border-none last:pb-0">
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-start gap-4">
-                          <h4 className="text-3xl font-black text-slate-800 border-r-4 border-blue-600 pr-4 leading-tight">{site.name}</h4>
-                          {site.mapUrl && (
-                            <a 
-                              href={site.mapUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 font-bold text-sm bg-blue-50 px-4 py-2 rounded-full whitespace-nowrap print:hidden transition-colors"
-                            >
-                              📍 נווט במפה
-                            </a>
+                    <div key={idx} className="space-y-8 border-b border-gray-100 pb-16 last:border-none last:pb-0">
+                      <div className="flex flex-col gap-10">
+                        {/* Site Image & Basic Info */}
+                        <div className="flex flex-col md:flex-row gap-10">
+                          {site.imageUrl && (
+                            <div className="w-full md:w-2/5 flex-shrink-0">
+                              <div className="relative group overflow-hidden rounded-[2rem] shadow-2xl aspect-[16/10]">
+                                <img 
+                                  src={site.imageUrl} 
+                                  alt={site.name}
+                                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                  loading="lazy"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60"></div>
+                                <div className="absolute bottom-6 right-6 text-white font-black text-xl drop-shadow-lg">{site.name}</div>
+                              </div>
+                            </div>
                           )}
+                          
+                          <div className="flex-grow space-y-6">
+                            <div className="flex justify-between items-start gap-4">
+                              <h4 className="text-4xl font-black text-slate-800 border-r-8 border-blue-600 pr-6 leading-tight">{site.name}</h4>
+                              {site.mapUrl && (
+                                <a 
+                                  href={site.mapUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 font-bold text-sm bg-blue-50 px-6 py-3 rounded-2xl whitespace-nowrap print:hidden transition-all shadow-sm active:scale-95"
+                                >
+                                  📍 פתח במפה
+                                </a>
+                              )}
+                            </div>
+                            <p className="text-slate-700 text-xl leading-relaxed font-medium">{site.description}</p>
+                          </div>
                         </div>
-                        <p className="text-slate-700 text-lg leading-relaxed">{site.description}</p>
-                      </div>
 
-                      <SiteDetails site={site} />
+                        {/* Detailed Tabs-like Content */}
+                        <SiteDetails site={site} />
+                      </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Culinary Section */}
+                {/* Culinary Section - Enhanced */}
                 {day.culinaryTips && day.culinaryTips.length > 0 && (
-                  <div className="bg-orange-50 p-8 rounded-3xl border border-orange-100 print:bg-white print:border-gray-200">
-                    <h4 className="text-2xl font-black text-orange-800 mb-6 flex items-center gap-3">
-                      <span className="bg-orange-200 p-2 rounded-xl text-xl">🍽️</span>
-                      טעמים מקומיים להיום
+                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-10 rounded-[2.5rem] border border-orange-100 shadow-inner print:bg-white print:border-gray-200">
+                    <h4 className="text-3xl font-black text-orange-900 mb-8 flex items-center gap-4">
+                      <span className="bg-orange-200 p-3 rounded-2xl text-2xl shadow-sm">🥘</span>
+                      המלצות קולינריות והסברים
                     </h4>
-                    <div className="grid gap-6 md:grid-cols-2 print:grid-cols-2">
+                    <div className="grid gap-8 md:grid-cols-2 print:grid-cols-1">
                       {day.culinaryTips.map((tip, idx) => (
-                        <div key={idx} className="bg-white p-5 rounded-2xl border border-orange-100 shadow-sm">
-                          <p className="font-bold text-orange-900 text-lg mb-1">{tip.dish}</p>
-                          <p className="text-orange-700/80 text-sm leading-relaxed">{tip.description}</p>
+                        <div key={idx} className="bg-white p-7 rounded-3xl border border-orange-100 shadow-sm hover:shadow-md transition-shadow">
+                          <p className="font-black text-orange-800 text-2xl mb-3">{tip.dish}</p>
+                          <p className="text-orange-950/80 text-lg leading-relaxed whitespace-pre-line">{tip.description}</p>
                         </div>
                       ))}
                     </div>
@@ -335,71 +351,69 @@ const ItineraryView: React.FC<Props> = ({ data, onReset }) => {
           ))}
         </div>
 
-        {/* Music Section */}
+        {/* Music Section - Enhanced Links */}
         {data.musicSuggestions && data.musicSuggestions.length > 0 && (
-          <div className="bg-slate-900 text-white p-10 rounded-[3rem] shadow-2xl print:hidden overflow-hidden relative">
-            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.1),transparent)] pointer-events-none"></div>
-            <h3 className="text-3xl font-black mb-8 flex items-center gap-3">
-              <span className="bg-white/10 p-2 rounded-xl">🎵</span>
-              פסקול לנסיעה
-            </h3>
-            <div className="grid gap-8 md:grid-cols-3">
-              {data.musicSuggestions.map((music, idx) => (
-                <div key={idx} className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors group">
-                  <h4 className="font-bold text-xl mb-2 group-hover:text-blue-400 transition-colors">{music.title}</h4>
-                  <p className="text-slate-400 text-sm mb-6 leading-relaxed italic">{music.reason}</p>
-                  {music.youtubeUrl && (
-                    <a 
-                      href={music.youtubeUrl}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-red-600/90 hover:bg-red-600 text-white px-5 py-2.5 rounded-xl text-xs font-black transition-all active:scale-95 shadow-lg shadow-red-900/20"
-                    >
-                      <span>▶</span> נגן ב-YouTube
-                    </a>
-                  )}
-                </div>
-              ))}
+          <div className="bg-slate-900 text-white p-12 rounded-[3.5rem] shadow-2xl print:hidden overflow-hidden relative">
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.15),transparent)] pointer-events-none"></div>
+            <div className="relative z-10">
+              <h3 className="text-4xl font-black mb-10 flex items-center gap-4">
+                <span className="bg-white/10 p-3 rounded-2xl text-2xl">🎶</span>
+                פסקול מקומי מומלץ לטיול
+              </h3>
+              <div className="grid gap-10 md:grid-cols-3">
+                {data.musicSuggestions.map((music, idx) => (
+                  <div key={idx} className="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group flex flex-col h-full">
+                    <h4 className="font-black text-2xl mb-3 group-hover:text-blue-400 transition-colors">{music.title}</h4>
+                    <p className="text-slate-400 text-base mb-8 leading-relaxed italic flex-grow">"{music.reason}"</p>
+                    {music.youtubeUrl && (
+                      <a 
+                        href={music.youtubeUrl}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-3 bg-red-600 hover:bg-red-700 text-white px-6 py-3.5 rounded-2xl text-sm font-black transition-all active:scale-95 shadow-lg shadow-red-900/40"
+                      >
+                        <span className="text-lg">▶</span> חיפוש ב-YouTube
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Custom Styles for PDF and Animations */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes fade-in {
-          from { opacity: 0; transform: translateY(20px); }
+          from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-          animation: fade-in 0.8s ease-out forwards;
+          animation: fade-in 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         
-        /* Specific rules for html2pdf capture */
         .pdf-capture-mode {
           direction: rtl !important;
           text-align: right !important;
-          padding: 15mm !important;
+          padding: 10mm !important;
           background-color: white !important;
-          width: 210mm !important; /* Forces A4 width during capture */
+          width: 210mm !important;
           margin: 0 auto !important;
         }
         
-        .pdf-capture-mode .print-hidden, 
-        .pdf-capture-mode .no-print {
+        .pdf-capture-mode .print-hidden {
           display: none !important;
         }
 
-        .pdf-capture-mode .rounded-3xl, 
-        .pdf-capture-mode .rounded-[3rem] {
-          border-radius: 12px !important;
+        .pdf-capture-mode img {
+          border-radius: 12mm !important;
+          max-width: 100% !important;
+          height: auto !important;
         }
 
-        .pdf-capture-mode .shadow-md, 
-        .pdf-capture-mode .shadow-lg, 
-        .pdf-capture-mode .shadow-2xl {
-          box-shadow: none !important;
-          border: 1px solid #e2e8f0 !important;
+        .pdf-capture-mode .rounded-[2.5rem],
+        .pdf-capture-mode .rounded-[3.5rem] {
+          border-radius: 8mm !important;
         }
       `}} />
     </div>

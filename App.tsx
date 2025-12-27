@@ -13,7 +13,8 @@ const LOADING_STEPS = [
   "מתאים את קצב הטיול להעדפותיך...",
   "אוצר חוויות קולינריות מקומיות...",
   "מכין את פלייליסט הנסיעה המושלם...",
-  "מייצר את המסלול הסופי..."
+  "מייצר את המסלול הסופי...",
+  "מפיק תמונות מרהיבות של היעדים..."
 ];
 
 const App: React.FC = () => {
@@ -30,7 +31,7 @@ const App: React.FC = () => {
     if (isLoading) {
       interval = setInterval(() => {
         setLoadingStep((prev) => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-      }, 3500);
+      }, 4000);
 
       timerInterval = setInterval(() => {
         setElapsedTime((prev) => prev + 1);
@@ -116,7 +117,7 @@ const App: React.FC = () => {
             {isLoading && (
               <div className="mt-8 max-w-2xl mx-auto space-y-6">
                 <div className="text-center space-y-2">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full font-bold text-xl shadow-inner border transition-colors ${elapsedTime > 45 ? 'bg-orange-100 text-orange-600 border-orange-200' : 'bg-blue-100 text-blue-600 border-blue-200'}`}>
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full font-bold text-xl shadow-inner border transition-colors ${elapsedTime > 60 ? 'bg-orange-100 text-orange-600 border-orange-200' : 'bg-blue-100 text-blue-600 border-blue-200'}`}>
                     {elapsedTime}s
                   </div>
                   <p className="text-sm text-gray-400 font-medium">זמן שחלף</p>
@@ -133,9 +134,9 @@ const App: React.FC = () => {
                   <p className="text-blue-800 font-black animate-pulse text-xl mb-1">
                     {LOADING_STEPS[loadingStep]}
                   </p>
-                  {elapsedTime > 30 && (
+                  {elapsedTime > 35 && (
                     <p className="text-orange-600 text-sm font-bold animate-bounce mt-2">
-                      התהליך לוקח מעט יותר זמן מהרגיל, תודה על הסבלנות...
+                      אנחנו גם מייצרים עבורך תמונות מרהיבות של המקומות, זה דורש מעט סבלנות...
                     </p>
                   )}
                   <p className="text-gray-400 text-sm italic mt-1">

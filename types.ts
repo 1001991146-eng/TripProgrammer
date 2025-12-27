@@ -30,6 +30,7 @@ export interface Site {
   history: string;
   culture: string;
   mapUrl: string;
+  imageUrl?: string; // New field for site images
 }
 
 export interface CulinaryRecommendation {
